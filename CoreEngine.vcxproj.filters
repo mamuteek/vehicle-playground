@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Gfx">
+      <UniqueIdentifier>{ef860a75-9a67-4838-9f40-9fc85d607991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{485356ff-5791-4ffb-935c-19d3da00f92b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics">
+      <UniqueIdentifier>{9e933792-ae59-4ca6-87e7-190069919005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vehicle">
+      <UniqueIdentifier>{b12ee3c2-3490-48d9-99d8-69c667b83cfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics_bullet">
+      <UniqueIdentifier>{37c90662-64af-4351-bb12-679e86d9f44b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics_physX">
+      <UniqueIdentifier>{dc135408-dc66-4c0a-86ed-7510c2afeb99}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="debugDrawer.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="gui.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="debugDrawPhysX.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="vector.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_actor.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_joint.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_scene.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_server.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_shape.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_globals.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="placement.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="quat.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="shared_vehicle.h">
+      <Filter>Vehicle</Filter>
+    </ClInclude>
+    <ClInclude Include="vehicle_physics.h">
+      <Filter>Vehicle</Filter>
+    </ClInclude>
+    <ClInclude Include="vehicle_suspension.h">
+      <Filter>Vehicle</Filter>
+    </ClInclude>
+    <ClInclude Include="core_callbacks.h" />
+    <ClInclude Include="core.h" />
+    <ClInclude Include="physics_actor_bullet.h">
+      <Filter>Physics_bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_callbacks_bullet.h">
+      <Filter>Physics_bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_joint_bullet.h">
+      <Filter>Physics_bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_scene_bullet.h">
+      <Filter>Physics_bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_server_bullet.h">
+      <Filter>Physics_bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_shape_bullet.h">
+      <Filter>Physics_bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_actor_physx.h">
+      <Filter>Physics_physX</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_joint_physx.h">
+      <Filter>Physics_physX</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_scene_physx.h">
+      <Filter>Physics_physX</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_server_physx.h">
+      <Filter>Physics_physX</Filter>
+    </ClInclude>
+    <ClInclude Include="physics_shape_physx.h">
+      <Filter>Physics_physX</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="debugDrawer.cpp">
+      <Filter>Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
+      <Filter>Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="debugDrawPhysX.cpp">
+      <Filter>Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_actor.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_joint.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_scene.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_server.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_shape.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="shared_vehicle.cpp">
+      <Filter>Vehicle</Filter>
+    </ClCompile>
+    <ClCompile Include="vehicle_physics.cpp">
+      <Filter>Vehicle</Filter>
+    </ClCompile>
+    <ClCompile Include="vehicle_suspension.cpp">
+      <Filter>Vehicle</Filter>
+    </ClCompile>
+    <ClCompile Include="core.cpp" />
+    <ClCompile Include="physics_actor_bullet.cpp">
+      <Filter>Physics_bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_callbacks_bullet.cpp">
+      <Filter>Physics_bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_joint_bullet.cpp">
+      <Filter>Physics_bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_scene_bullet.cpp">
+      <Filter>Physics_bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_server_bullet.cpp">
+      <Filter>Physics_bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_shape_bullet.cpp">
+      <Filter>Physics_bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_actor_physx.cpp">
+      <Filter>Physics_physX</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_joint_physx.cpp">
+      <Filter>Physics_physX</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_scene_physx.cpp">
+      <Filter>Physics_physX</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_server_physx.cpp">
+      <Filter>Physics_physX</Filter>
+    </ClCompile>
+    <ClCompile Include="physics_shape_physx.cpp">
+      <Filter>Physics_physX</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

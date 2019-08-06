@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="debugDrawPhysX.h" />
+    <ClInclude Include="core_callbacks.h" />
+    <ClInclude Include="physics_actor.h" />
+    <ClInclude Include="physics_actor_bullet.h" />
+    <ClInclude Include="physics_actor_physx.h" />
+    <ClInclude Include="physics_globals.h" />
+    <ClInclude Include="physics_joint.h" />
+    <ClInclude Include="physics_joint_bullet.h" />
+    <ClInclude Include="physics_joint_physx.h" />
+    <ClInclude Include="physics_scene_bullet.h" />
+    <ClInclude Include="physics_scene_physx.h" />
+    <ClInclude Include="physics_scene.h" />
+    <ClInclude Include="physics_server.h" />
+    <ClInclude Include="physics_server_bullet.h" />
+    <ClInclude Include="physics_server_physx.h" />
+    <ClInclude Include="physics_shape.h" />
+    <ClInclude Include="physics_shape_bullet.h" />
+    <ClInclude Include="physics_shape_physx.h" />
+    <ClInclude Include="quat.h" />
+    <ClInclude Include="placement.h" />
+    <ClInclude Include="vector.h" />
+    <ClInclude Include="shaders.h" />
+    <ClInclude Include="vehicle_physics.h" />
+    <ClInclude Include="vehicle_suspension.h" />
+    <ClInclude Include="physics_callbacks_bullet.h" />
+    <ClInclude Include="core.h" />
+    <ClInclude Include="debugDrawer.h" />
+    <ClInclude Include="gui.h" />
+    <ClInclude Include="shared_vehicle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="debugDrawPhysX.cpp" />
+    <ClCompile Include="physics_actor.cpp" />
+    <ClCompile Include="physics_actor_bullet.cpp" />
+    <ClCompile Include="physics_actor_physx.cpp" />
+    <ClCompile Include="physics_joint.cpp" />
+    <ClCompile Include="physics_joint_bullet.cpp" />
+    <ClCompile Include="physics_joint_physx.cpp" />
+    <ClCompile Include="physics_scene_bullet.cpp" />
+    <ClCompile Include="physics_scene_physx.cpp" />
+    <ClCompile Include="physics_scene.cpp" />
+    <ClCompile Include="physics_server.cpp" />
+    <ClCompile Include="physics_server_bullet.cpp" />
+    <ClCompile Include="physics_server_physx.cpp" />
+    <ClCompile Include="physics_shape.cpp" />
+    <ClCompile Include="physics_shape_bullet.cpp" />
+    <ClCompile Include="physics_shape_physx.cpp" />
+    <ClCompile Include="vehicle_physics.cpp" />
+    <ClCompile Include="vehicle_suspension.cpp" />
+    <ClCompile Include="physics_callbacks_bullet.cpp" />
+    <ClCompile Include="core.cpp" />
+    <ClCompile Include="debugDrawer.cpp" />
+    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="shared_vehicle.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AA12A601-6D04-4A53-8C20-A4D9CE9AA943}</ProjectGuid>
+    <RootNamespace>physics_playground</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>vehicle_playground</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);c:\Users\Frantisek\Code\ogre\bin\include;c:\Users\Frantisek\Code\ogre\ogre\ogreMain\include;c:\Users\Frantisek\Code\ogre\ogre\OIS\includes;c:\Users\Frantisek\Code\physicsPlayground\includes;c:\Users\Frantisek\Code\bullet\bullet3\src</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(ProjectDir)\..\_bin;$(ProjectDir)\..\..\..\physx\physx\bin\win.x86_64.vc140.mt\debug</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\CoreEngine\;$(ProjectDir)\..\_include;$(ProjectDir)\..\;$(ProjectDir)\..\..\..\physx\physx\include\;$(ProjectDir)\..\..\..\physx\pxshared\include\</IncludePath>
+    <IntDir>CoreEngine.dir\Debug\</IntDir>
+    <OutDir>$(ProjectDir)\..\_bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>c:\Users\Frantisek\Code\ogre\ogre\Components\Overlay\include;c:\Users\Frantisek\Code\ogre\bin\include;c:\Users\Frantisek\Code\physicsPlayground\src;c:\Users\Frantisek\Code\physicsPlayground\physics_playground;c:\Users\Frantisek\Code\ogre\ogre\OIS\includes;c:\Users\Frantisek\Code\ogre\ogre\ogreMain\include;$(IncludePath)</IncludePath>
+    <LibraryPath>c:\Users\Frantisek\Code\ogre\ogre\OIS\lib64;c:\Users\Frantisek\Code\ogre\bin\lib\Debug;c:\Users\Frantisek\Code\bullet\bin\lib\Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCooking_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;bullet_linear_math_double_d.lib;bullet_collision_double_d.lib;bullet_dynamics_double_d.lib;bullet_soft_body_double_d.lib;glew32s.lib;glfw3.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>OgreMain_d.lib;OIS_d.lib;OgreOverlay_d.lib;BulletSoftBody.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;BulletRobotics.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
