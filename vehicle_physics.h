@@ -8,54 +8,40 @@ class physics_scene;
 
 class vehicle_physics
 {
-	std::vector<float>		m_forwardImpulse;
-	std::vector<float>		m_sideImpulse;
+	std::vector<float>		m_longitudinal_force;
+	std::vector<float>		m_lateral_force;
 
 	physics_actor *m_chassisBody;
 	physics_scene *m_scene;
 
+	std::vector<vehicle_suspension*> m_wheels;
 
 public:
 	vehicle_physics(physics_actor* chassis, physics_scene *scene);
 	virtual ~vehicle_physics() ;
 
-	virtual void processRaycasts(void);
-	virtual void updateSuspension(void);
-	virtual void updateFriction(void);
-	virtual void rotateWheels(float timestep);
+	virtual void process_raycasts(void);
+	virtual void update_suspension(const float timestep);
+	virtual void update_friction(void);
+	virtual void rotate_wheels(float timestep);
 
-	virtual void updateVehicle(float timestep);
+	virtual void update_vehicle(float timestep);
+
+	float				get_steering	(int wheel);
+	void				set_steering	(float steering, int wheel);
+	void				apply_engine_force	(float force, int wheel);
+	void				set_brake			(float brake, int wheelIndex);
+
+	vehicle_suspension*	get_wheel	(int index);
 
 
-	const placement_m	getChassisWorldTransform() const;
-	float				getSteeringValue(int wheel) const;
-	void				setSteeringValue(float steering, int wheel);
-	void				applyEngineForce(float force, int wheel);
-	const placement_m	getWheelTransformWS(int wheelIndex) const;
-	void				updateWheelTransform(int wheelIndex);
+	const placement_m	get_wheel_world_transform	(int wheelIndex) const;
+	const placement_m	get_chassis_world_transform	(void) const;
+	void				update_wheel_transform		(int wheelIndex);
 
-	void addWheel(const vec3_m& connectionPointCS0, const vec3_m& wheelDirectionCS0,const vec3_m& wheelAxleCS,float suspensionRestLength,float wheelRadius, bool isFrontWheel);
+	void add_wheel(	const vec3_m& connectionPointCS0, const vec3_m& wheelDirectionCS0,const vec3_m& wheelAxleCS,float suspensionRestLength,float wheelRadius, bool isFrontWheel);
 
-	inline int		getNumWheels() const {
-		return int (m_wheelInfo.size());
+	inline int get_wheel_count() const {
+		return int (m_wheels.size());
 	}
-
-	std::vector<vehicle_suspension>	m_wheelInfo;
-
-
-	const vehicle_suspension&	getWheelInfo(int index) const;
-
-	vehicle_suspension&	getWheelInfo(int index);
-
-	void setBrake(float brake,int wheelIndex);
-
-	vec3_m getForwardVector() const
-	{
-		const placement_m& chassisTrans = getChassisWorldTransform();
-
-		const vec3_m forward_axis_local(0.0f, 1.0f, 0.0f);
-		const vec3_m forward_axis_global = chassisTrans.transform(forward_axis_local);
-		return forward_axis_global;
-	}
-
 };

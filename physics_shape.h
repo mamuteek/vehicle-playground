@@ -13,7 +13,7 @@ public:
 
 	//physics_scene *scene;
 
-	shapeType type;
+	phys_shape_type type;
 
 	virtual void*	get_body(void) = 0;
 	virtual void	set_body(void* the_body) = 0;

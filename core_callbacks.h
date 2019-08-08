@@ -1,8 +1,8 @@
 #ifndef MATHFUNC_H_
 #define MATHFUNC_H_
 
-#include<debugDrawer.h>
-//#include "imgui.h"
+#include <debugDrawer.h>
+#include <imgui.h>
 
 static bool keys_down[512];
 
@@ -84,7 +84,7 @@ static void Engine_InstallCallbacks(GLFWwindow* window)
 
 /** IMGUI callbacks */
 
-/*
+
 static void ImGui_MouseButtonCallback(GLFWwindow*, int button, int action, int)
 {
     //if (action == GLFW_PRESS && button >= 0 && button < 3)
@@ -129,7 +129,7 @@ static void ImGui_InstallCallbacks(GLFWwindow* window)
     glfwSetScrollCallback(window, ImGui_ScrollCallback);
     glfwSetKeyCallback(window, ImGui_KeyCallback);
     glfwSetCharCallback(window, ImGui_CharCallback);
-}*/
+}
 
 
 #endif /* MATHFUNC_H_ */

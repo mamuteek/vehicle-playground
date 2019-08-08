@@ -5,9 +5,12 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
-//#include <imgui.h>
+#include <imgui.h>
 #include <debugDrawer.h>
 
+struct ImDrawData;
+struct GLFWcursor;
+struct GLFWwindow;
 
 class GUI
 {
@@ -15,9 +18,9 @@ public:
 	GUI(GLFWwindow *window);
 	~GUI();
 
-	void ImGui_Shutdown();
-	void NewFrame();
-	//void RenderDrawData(ImDrawData* draw_data);
+	void ImGui_Shutdown(void);
+	void new_frame	(void);
+	void render		(void);
 
 	// Use if you want to reset your rendering device without losing ImGui state.
 	void ImGui_InvalidateDeviceObjects();
@@ -28,7 +31,7 @@ protected:
 	GLFWwindow	 *m_Window;
 	double       m_Time;
 	bool         m_MouseJustPressed[3] = { false, false, false };
-	//GLFWcursor*  m_MouseCursors[ImGuiMouseCursor_COUNT];
+	GLFWcursor*  m_MouseCursors[ImGuiMouseCursor_COUNT];
 
 	// OpenGL3 data
 	char         m_GlslVersion[32];

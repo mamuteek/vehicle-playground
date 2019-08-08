@@ -4,17 +4,18 @@
 
 class physics_actor;
 
-
 struct vehicle_suspension
 {
 	struct RaycastInfo
 	{
 		vec3_m	m_contactNormalWS;
 		vec3_m	m_contactPointWS;
-		float	m_suspensionLength;
+		float	m_suspension_length;
+		float	m_suspension_length_last;
 		vec3_m	m_hardPointWS;
 		vec3_m	m_wheelDirectionWS;
 		vec3_m	m_wheelAxleWS;
+		vec3_m  m_wheelForwardWS;
 		bool	m_isInContact;
 		void*	m_groundObject;
 	};
@@ -57,15 +58,5 @@ struct vehicle_suspension
 		  m_brake(0.0f),
 		  m_is_front(false)
 	{}
-
-
-	void	updateWheel(physics_actor& chassis, RaycastInfo& raycastInfo);
-
-	float	m_clippedInvContactDotSuspension;
-	float	m_suspensionRelativeVelocity;
-	//calculated by suspension
-	float	m_wheelsSuspensionForce;
-	float	m_skidInfo;
-
 };
 

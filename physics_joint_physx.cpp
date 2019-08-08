@@ -32,8 +32,31 @@ void physics_joint_physx::insert(physics_scene* scene)
 {
 }
 
-void physics_joint_physx::set_limits(const joint_limit_m & limit)
+void physics_joint_physx::set_limits(const joint_limit_m& limit)
 {
+	// TODO: implement properly, now hacked to provide
+	// correct behavior for the 6DOF hook joint only
+	PxD6Joint *d6_body = static_cast<PxD6Joint*>(body);
+
+	/*
+	linear_min[0] = limit.linear_x_min;
+	linear_max[0] = limit.linear_x_max;
+	linear_min[1] = limit.linear_y_min;
+	linear_max[1] = limit.linear_y_max;
+	linear_min[2] = limit.linear_z_min;
+	linear_max[2] = limit.linear_z_max;
+
+	const PxJointLinearLimit;
+	d6_body->setDistanceLimit();*/
+
+	const PxJointAngularLimitPair twist_lim(limit.angular_y_min, limit.angular_y_max);
+	const PxJointLimitCone swing_lim(limit.angular_x_max, limit.angular_z_max);
+
+	d6_body->setMotion(PxD6Axis::eTWIST, PxD6Motion::eFREE);
+	d6_body->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+	d6_body->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+	//d6_body->setTwistLimit(twist_lim);
+	d6_body->setSwingLimit(swing_lim);
 }
 
 

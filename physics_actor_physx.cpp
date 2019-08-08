@@ -40,6 +40,7 @@ void physics_actor_physx::set_mass(const float mass)
 
 void physics_actor_physx::auto_set_inertia(void)
 {
+	//PxRigidBodyExt::updateMassAndInertia(*body, 1.0f);
 }
 
 void physics_actor_physx::set_inertia(const vec3_m &inertia)

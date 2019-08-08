@@ -1,6 +1,5 @@
 #include <core.h>
 #include <placement.h>
-//#include <imgui.h>
 #include <GUI.h>
 
 #include <core_callbacks.h>
@@ -19,17 +18,19 @@
 // For time measurement.
 #include <windows.h>
 
-const bool IS_PHYSX = false;
-
 const float SERVER_FREQUENCY = 1.0f / 60.0f;
 const int SKIP_TICKS = 17;
 const int MAX_FRAMESKIP = 5;
 const float MASS_SCALING = 0.0001f;
 
+const float STEER_LIMIT = 0.4f; // in radians
+const float STEER_SPEED = 0.02f;// in radians per second
+
 
 coreApp::~coreApp()
 {
 	delete m_physics;
+	delete m_GUI;
 
 	glfwDestroyWindow(m_window);
 	glfwTerminate();
@@ -38,13 +39,14 @@ coreApp::~coreApp()
 
 
 coreApp::coreApp()
-	:
-	is_paused(false),
-	m_window(nullptr),
-	m_physics(nullptr),
-	m_shaders(nullptr),
-	showGUI(false),
-	vehicleMotionFlag(DEFAULT)
+	: is_paused(true),
+	  physics_loaded(false),
+	  m_window(),
+	  m_physics(),
+	  m_shaders(),
+	  m_GUI(),
+	  showGUI(false),
+	  motion_flag(DEFAULT)
 {
 	// GL
 	glfwInit();
@@ -73,24 +75,31 @@ coreApp::coreApp()
 	// Shaders
 	m_shaders = new myShaders();
 
-	// Imgui
-	//mGUI = new GUI(mWindow);
+	// GUI
+	m_GUI = new GUI(m_window);
 
 	// Key map
 	for (int i = 0; i < 512; ++i) {
 		keys_down[i] = false;
 	}
+}
 
-	// Physics
-	if (IS_PHYSX) {
+
+void coreApp::init_physics(phys_engine_type engine)
+{
+	if (engine == PHYS_ENGINE_physx) {
 		m_physics = new physics_server_physx(SERVER_FREQUENCY);
 	}
-	else {
+	else if (engine == PHYS_ENGINE_bullet) {
 		m_physics = new physics_server_bullet(SERVER_FREQUENCY);
 	}
+	else {
+		abort();
+	}
+
 	m_scene = m_physics->create_scene();
 	m_scene->init();
-	create_physics_objects();
+	create_physics_objects(engine);
 }
 
 
@@ -106,7 +115,7 @@ void coreApp::mainLoop(void)
 
 		loops = 0;
 		while (GetTickCount() >= next_game_tick && loops < MAX_FRAMESKIP) {
-			if (!is_paused) {
+			if (!is_paused && physics_loaded) {
 				handle_simulation();
 			}
 
@@ -135,36 +144,78 @@ void coreApp::handle_renderer(const float timestep)
 
 	handle_input();
 
-	//mGUI->NewFrame();
+	m_GUI->new_frame();
 
-	//ImGui::ShowDemoWindow(&show_demo_window);
+	if (!physics_loaded) {
+		bool my_tool_active = true;
+		ImGui::Begin("Choose your physics engine", &my_tool_active, ImGuiWindowFlags_None);
+		ImGui::SetWindowFontScale(1.8f);
 
-	m_scene->render_update();
+		if (ImGui::Button("Bullet")) {
+			init_physics(PHYS_ENGINE_bullet);
+			physics_loaded = true;
+			is_paused = false;
+		}
 
-	// Render
-	int display_w, display_h;
-	glfwGetFramebufferSize(m_window, &display_w, &display_h);
-	glViewport(0, 0, display_w, display_h);
-	glClearColor(0.4f, 0.7f, 0.9f, 0.5f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (ImGui::Button("PhysX")) {
+			init_physics(PHYS_ENGINE_physx);
+			physics_loaded = true;
+			is_paused = false;
+		}
 
-	int width, height;
-	glfwGetWindowSize(m_window, &width, &height);
-	glm::mat4 projMatrix = glm::perspective(glm::radians(fov), (float)width / (float)height, 0.1f, 1000.0f);
-	glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	//glm::mat4 modelMatrix = glm::rotate(modelMatrix, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::mat4 mvpMatrix = projMatrix * viewMatrix; // *modelMatrix;
+		ImGui::End();
+	}
+	else {
+		bool my_tool_active = true;
+		ImGui::Begin("A simple driving demo", &my_tool_active, ImGuiWindowFlags_None);
+		ImGui::SetWindowFontScale(1.8f);
 
-	// Debug draw lines
-	glUseProgram(m_shaders->linesShaderProgram);
-	int mvp = glGetUniformLocation(m_shaders->linesShaderProgram, "mvp");
-	glUniformMatrix4fv(mvp, 1, false, glm::value_ptr(mvpMatrix));
-	m_scene->debug_draw_lines();
+		ImGui::Text("Use arrow keys to move around,");
+		ImGui::Text("SPACE to brake, P to pause/unpause,");
+		ImGui::Text("ESC to exit.");
 
-	// Debug draw triangles
-	glUseProgram(m_shaders->trianglesShaderProgram);
-	glUniformMatrix4fv(mvp, 1, false, glm::value_ptr(mvpMatrix));
-	m_scene->debug_draw_triangles();
+		ImGui::End();
+	}
+
+	ImGui::Render();
+
+	if (m_scene) {
+		m_scene->render_update();
+
+		// Render
+		int display_w, display_h;
+		glfwGetFramebufferSize(m_window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		glClearColor(0.4f, 0.7f, 0.9f, 0.5f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		int width, height;
+		glfwGetWindowSize(m_window, &width, &height);
+		glm::mat4 projMatrix = glm::perspective(glm::radians(fov), (float)width / (float)height, 0.1f, 1000.0f);
+		glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		//glm::mat4 modelMatrix = glm::rotate(modelMatrix, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 mvpMatrix = projMatrix * viewMatrix; // *modelMatrix;
+
+		// Debug draw lines
+		glUseProgram(m_shaders->linesShaderProgram);
+		int mvp = glGetUniformLocation(m_shaders->linesShaderProgram, "mvp");
+		glUniformMatrix4fv(mvp, 1, false, glm::value_ptr(mvpMatrix));
+		m_scene->debug_draw_lines();
+
+		// Debug draw triangles
+		glUseProgram(m_shaders->trianglesShaderProgram);
+		glUniformMatrix4fv(mvp, 1, false, glm::value_ptr(mvpMatrix));
+		m_scene->debug_draw_triangles();
+	}
+	else {
+		int display_w, display_h;
+		glfwGetFramebufferSize(m_window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	m_GUI->render();
 
 	glfwSwapBuffers(m_window);
 }
@@ -178,7 +229,7 @@ void coreApp::handle_input(void)
 	// Input - ImGui
 	if (keys_down[GLFW_KEY_U]) {
 		keys_down[GLFW_KEY_U] = false;
-		//ImGui_InstallCallbacks(mWindow);
+		ImGui_InstallCallbacks(m_window);
 	}
 
 	// Input - Camera
@@ -193,22 +244,46 @@ void coreApp::handle_input(void)
 
 	// Input - Vehicle
 	if (keys_down[GLFW_KEY_UP] == true) {
-		vehicleMotionFlag = UP;
-	}
-	else if (keys_down[GLFW_KEY_DOWN] == true) {
-		vehicleMotionFlag = DOWN;
-	}
-	else if (keys_down[GLFW_KEY_LEFT] == true) {
-		vehicleMotionFlag = LEFT;
-	}
-	else if (keys_down[GLFW_KEY_RIGHT] == true) {
-		vehicleMotionFlag = RIGHT;
-	}
-	else if (keys_down[GLFW_KEY_C] == true) {
-		vehicleMotionFlag = C;
+		if (! (motion_flag & DOWN)) {
+			motion_flag |= UP;
+		}
 	}
 	else {
-		vehicleMotionFlag = DEFAULT;
+		motion_flag &= ~UP;
+	}
+
+	if (keys_down[GLFW_KEY_DOWN] == true) {
+		if (!(motion_flag & UP)) {
+			motion_flag |= DOWN;
+		}
+	}
+	else {
+		motion_flag &= ~DOWN;
+	}
+
+	if (keys_down[GLFW_KEY_LEFT] == true) {
+		if (! (motion_flag & RIGHT)) {
+			motion_flag |= LEFT;
+		}
+	}
+	else {
+		motion_flag &= ~LEFT;
+	}
+
+	if (keys_down[GLFW_KEY_RIGHT] == true) {
+		if (!(motion_flag & LEFT)) {
+			motion_flag |= RIGHT;
+		}
+	}
+	else {
+		motion_flag &= ~RIGHT;
+	}
+
+	if (keys_down[GLFW_KEY_SPACE] == true) {
+		motion_flag |= BRAKE;
+	}
+	else {
+		motion_flag &= ~BRAKE;
 	}
 
 	// Pausing the app
@@ -224,7 +299,7 @@ void coreApp::handle_input(void)
 }
 
 
-void coreApp::create_physics_objects(void)
+void coreApp::create_physics_objects(phys_engine_type engine)
 {
 	// The ground (modelled as a heightmap)
 	for (size_t idx = 0; idx < 900; ++idx) {
@@ -240,11 +315,14 @@ void coreApp::create_physics_objects(void)
 	m_ground_shape = m_physics->create_heightfield(terrainWidth, terrainLength, data, minHeight, maxHeight);
 
 	placement_m groundState;
-	if (IS_PHYSX) {
+	if (engine == PHYS_ENGINE_physx) {
 		groundState = placement_m(quat_m(0, 0, 0, 1), vec3_m(-100, -2, -100));
 	}
-	else {
+	else if (engine == PHYS_ENGINE_bullet) {
 		groundState = placement_m(quat_m(0, 0, 0, 1), vec3_m(0, -2, 0));
+	}
+	else {
+		abort();
 	}
 
 	m_ground_actor = m_physics->new_actor_static(groundState);
@@ -261,19 +339,21 @@ void coreApp::create_physics_objects(void)
 	const float trailer_mass = 12000.f * MASS_SCALING;
 	m_trailer = new shared_vehicle(m_scene, m_physics, trailer_placement, trailer_mass, vehicle_type_TRAILER);
 
-	// The hook joint
-	const placement_m frame_in_A(vec3_m(5.f, 3.f, 0));
-	const placement_m frame_in_B(vec3_m(-10.f, 3.f, 0.f));
-	m_hook_joint = m_physics->create_joint_6dof(m_truck->get_actor(), m_trailer->get_actor(), frame_in_A, frame_in_B);
-	m_hook_joint->insert(m_scene);
-	
-	joint_limit_m limit;
-	limit.angular_y_max = -1.0f;
-	limit.angular_x_max = 0.1f;
-	limit.angular_x_min = -0.1f;
-	limit.angular_z_max = 0.1f;
-	limit.angular_z_min = -0.1f;
-	m_hook_joint->set_limits(limit);
+	if (m_trailer) {
+		// The hook joint
+		const placement_m frame_in_A(vec3_m(5.f, 3.f, 0));
+		const placement_m frame_in_B(vec3_m(-10.f, 3.f, 0.f));
+		m_hook_joint = m_physics->create_joint_6dof(m_truck->get_actor(), m_trailer->get_actor(), frame_in_A, frame_in_B);
+		m_hook_joint->insert(m_scene);
+
+		joint_limit_m limit;
+		limit.angular_y_max = -1.0f;
+		limit.angular_x_max = 0.1f;
+		limit.angular_x_min = -0.1f;
+		limit.angular_z_max = 0.1f;
+		limit.angular_z_min = -0.1f;
+		m_hook_joint->set_limits(limit);
+	}
 }
 
 
@@ -283,32 +363,66 @@ void coreApp::physics_update(void)
 
 void coreApp::physics_post_update(void)
 {
-	if (m_truck && m_truck->getSuspension()->getNumWheels()) {
-		switch (vehicleMotionFlag) {
-		case LEFT:
-			m_truck->getSuspension()->setSteeringValue(0.4f, 0);
-			m_truck->getSuspension()->setSteeringValue(0.4f, 1);
-			break;
-		case RIGHT:
-			m_truck->getSuspension()->setSteeringValue(-0.4f, 0);
-			m_truck->getSuspension()->setSteeringValue(-0.4f, 1);
-			break;
-		case UP:
-			m_truck->getSuspension()->applyEngineForce(1.0f, 2);
-			m_truck->getSuspension()->applyEngineForce(1.0f, 3);
-			break;
-		case DOWN:
-			m_truck->getSuspension()->applyEngineForce(-1.0f, 2);
-			m_truck->getSuspension()->applyEngineForce(-1.0f, 3);
-			break;
-		case C:
-			m_truck->getSuspension()->setBrake(10.0f, 2);
-			m_truck->getSuspension()->setBrake(10.0f, 3);
-			break;
-		default:
-			m_truck->getSuspension()->setSteeringValue(0.0f, 0);
-			m_truck->getSuspension()->setSteeringValue(0.0f, 1);
-			break;
+	if (m_truck && m_truck->getSuspension()->get_wheel_count()) {
+		if (motion_flag & LEFT) {
+			// Gradually turn steerable wheels left.
+			const float steer_value_0 = min(STEER_LIMIT, m_truck->getSuspension()->get_steering(0) + STEER_SPEED);
+			m_truck->getSuspension()->set_steering(steer_value_0, 0);
+			const float steer_value_1 = min(STEER_LIMIT, m_truck->getSuspension()->get_steering(1) + STEER_SPEED);
+			m_truck->getSuspension()->set_steering(steer_value_1, 1);
+		}
+		else if (motion_flag & RIGHT) {
+			// Gradually turn steerable wheels right.
+			const float steer_value_0 = max(-STEER_LIMIT, m_truck->getSuspension()->get_steering(0) - STEER_SPEED);
+			m_truck->getSuspension()->set_steering(steer_value_0, 0);
+			const float steer_value_1 = max(-STEER_LIMIT, m_truck->getSuspension()->get_steering(0) - STEER_SPEED);
+			m_truck->getSuspension()->set_steering(steer_value_1, 1);
+		}
+		else {
+			// Gradually return the steerable wheels to rest position.
+			const float steer_value_0_old = m_truck->getSuspension()->get_steering(0);
+			const int sgn_0 = steer_value_0_old > 0.0f ? 1 : -1;
+			float steer_value_0;
+			if (sgn_0 == 1) {
+				steer_value_0 = max(0.0f, steer_value_0_old - STEER_SPEED);
+			}
+			else {
+				steer_value_0 = min(0.0f, steer_value_0_old + STEER_SPEED);
+			}
+			m_truck->getSuspension()->set_steering(steer_value_0, 0);
+
+			const float steer_value_1_old = m_truck->getSuspension()->get_steering(1);
+			const int sgn_1 = steer_value_1_old > 0.0f ? 1 : -1;
+			float steer_value_1;
+			if (sgn_1 == 1) {
+				steer_value_1 = max(0.0f, steer_value_1_old - STEER_SPEED);
+			}
+			else {
+				steer_value_1 = min(0.0f, steer_value_1_old + STEER_SPEED);
+			}
+			m_truck->getSuspension()->set_steering(steer_value_1, 1);
+		}
+
+		if (motion_flag & UP) {
+			m_truck->getSuspension()->apply_engine_force(1.0f, 2);
+			m_truck->getSuspension()->apply_engine_force(1.0f, 3);
+		}
+		else if (motion_flag & DOWN) {
+			m_truck->getSuspension()->apply_engine_force(-1.0f, 2);
+			m_truck->getSuspension()->apply_engine_force(-1.0f, 3);
+		}
+		else {
+			m_truck->getSuspension()->apply_engine_force(0.0f, 2);
+			m_truck->getSuspension()->apply_engine_force(0.0f, 3);
+		}
+
+		if (motion_flag & BRAKE) {
+			m_truck->getSuspension()->set_brake(10.0f, 2);
+			m_truck->getSuspension()->set_brake(10.0f, 3);
+		}
+		else {
+			m_truck->getSuspension()->set_brake(0.0f, 2);
+			m_truck->getSuspension()->set_brake(0.0f, 3);
 		}
 	}
 

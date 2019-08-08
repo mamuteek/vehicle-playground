@@ -15,21 +15,26 @@ class GUI;
 class shared_vehicle;
 
 
-enum shapeType {
+enum phys_engine_type {
+	PHYS_ENGINE_bullet,
+	PHYS_ENGINE_physx
+};
+
+enum phys_shape_type {
 	SHAPE_BOX,
 	SHAPE_CYLINDER,
 	SHAPE_COMPOUND,
 	SHAPE_HEIGHTFIELD
 };
 
-enum motionFlag {
-	DEFAULT,
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-	C,
-	ZERO
+enum vehicle_motion_flag {
+	DEFAULT = 1 << 0,
+	UP = 1 << 1,
+	DOWN = 1 << 2,
+	LEFT = 1 << 3,
+	RIGHT = 1 << 4,
+	BRAKE = 1 << 5,
+	ZERO = 1 << 6
 };
 
 class coreApp
@@ -44,7 +49,8 @@ class coreApp
 		void handle_renderer	(const float timestep);
 		void handle_input		(void);
 
-		void create_physics_objects(void);
+		void init_physics	(phys_engine_type engine);
+		void create_physics_objects(phys_engine_type engine);
 
 		void physics_update	(void);
 		void physics_post_update(void);
@@ -59,9 +65,10 @@ class coreApp
 	private:
 
 		bool is_paused;
+		bool physics_loaded;
 		unsigned mHeightmap[900];
 
-		motionFlag		vehicleMotionFlag;
+		unsigned		motion_flag;
 
 		shared_vehicle	*m_truck;
 		shared_vehicle	*m_trailer;

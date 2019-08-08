@@ -1,5 +1,5 @@
 #include <GUI.h>
-//#include <imgui.h>
+#include <imgui.h>
 
 static const char* ImGui_ImplGlfwGL3_GetClipboardText(void* user_data)
 {
@@ -11,7 +11,7 @@ static void ImGui_ImplGlfwGL3_SetClipboardText(void* user_data, const char* text
 	glfwSetClipboardString((GLFWwindow*)user_data, text);
 }
 
-/*
+
 GUI::GUI(GLFWwindow *window)
 	: m_Window(window),
 	  m_Time(0.0f),
@@ -73,6 +73,7 @@ GUI::GUI(GLFWwindow *window)
 	io.SetClipboardTextFn = ImGui_ImplGlfwGL3_SetClipboardText;
 	io.GetClipboardTextFn = ImGui_ImplGlfwGL3_GetClipboardText;
 	io.ClipboardUserData = m_Window;
+
 #ifdef _WIN32
 	//io.ImeWindowHandle = glfwGetWin32Window(g_Window);
 #endif
@@ -99,8 +100,10 @@ GUI::~GUI()
 // OpenGL3 Render function.
 // (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
 // Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly, in order to be able to run within any OpenGL engine that doesn't do so.
-void GUI::RenderDrawData(ImDrawData* draw_data)
+void GUI::render(void)
 {
+	ImDrawData* draw_data = ImGui::GetDrawData();
+
     // Avoid rendering when minimized, scale coordinates for retina displays
 	// (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
@@ -183,15 +186,12 @@ void GUI::RenderDrawData(ImDrawData* draw_data)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ElementsHandle);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
 
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-        {
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++) {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-            if (pcmd->UserCallback)
-            {
+            if (pcmd->UserCallback) {
                 pcmd->UserCallback(cmd_list, pcmd);
             }
-            else
-            {
+            else {
                 glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
                 glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
                 glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
@@ -246,6 +246,7 @@ bool GUI::ImGui_CreateFontsTexture()
 
     // Store our identifier
     io.Fonts->TexID = (void *)(intptr_t)m_FontTexture;
+
 
     // Restore state
     glBindTexture(GL_TEXTURE_2D, last_texture);
@@ -354,7 +355,7 @@ void GUI::ImGui_Shutdown()
     ImGui_InvalidateDeviceObjects();
 }
 
-void GUI::NewFrame()
+void GUI::new_frame(void)
 {
     if (!m_FontTexture)
         ImGui_CreateDeviceObjects();
@@ -376,28 +377,23 @@ void GUI::NewFrame()
 
     // Setup inputs
     // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
-    if (glfwGetWindowAttrib(m_Window, GLFW_FOCUSED))
-    {
+    if (glfwGetWindowAttrib(m_Window, GLFW_FOCUSED)) {
         // Set OS mouse position if requested Keyboard(only used when
     	// ImGuiConfigFlags_NavEnableSetMousePos is enabled by user).
-        if (io.WantSetMousePos)
-        {
+        if (io.WantSetMousePos) {
             glfwSetCursorPos(m_Window, (double)io.MousePos.x, (double)io.MousePos.y);
         }
-        else
-        {
+        else {
             double mouse_x, mouse_y;
             glfwGetCursorPos(m_Window, &mouse_x, &mouse_y);
             io.MousePos = ImVec2((float)mouse_x, (float)mouse_y);
         }
     }
-    else
-    {
+    else {
         io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX);
     }
 
-    for (int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
         // If a mouse press event came, always pass it as "mouse held this frame",
     	// so we don't miss click-release events that are shorter than 1 frame.
         io.MouseDown[i] = m_MouseJustPressed[i] || glfwGetMouseButton(m_Window, i) != 0;
@@ -408,12 +404,10 @@ void GUI::NewFrame()
     if (glfwGetInputMode(m_Window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
     {
         ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
-        if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
-        {
+        if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None) {
             glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         }
-        else
-        {
+        else {
             glfwSetCursor(m_Window, m_MouseCursors[cursor] ? m_MouseCursors[cursor] : m_MouseCursors[ImGuiMouseCursor_Arrow]);
             glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
@@ -422,5 +416,4 @@ void GUI::NewFrame()
     // Start the frame. This call will update the io.WantCaptureMouse and
     // io.WantCaptureKeyboard flags that you can use to dispatch inputs (or not) to your application.
     ImGui::NewFrame();
-	
-}*/
+}

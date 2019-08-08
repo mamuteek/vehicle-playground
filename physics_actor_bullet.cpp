@@ -46,6 +46,7 @@ void physics_actor_bullet::auto_set_inertia(void)
 	const float mass = 1.0f / body->getInvMass();
 	btVector3 inertia;
 	body->getCollisionShape()->calculateLocalInertia(mass, inertia);
+	inertia[2] *= 10.0f;
 	body->setMassProps(mass, inertia);
 }
 

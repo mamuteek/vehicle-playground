@@ -23,65 +23,65 @@ vehicle_physics::~vehicle_physics()
 }
 
 
-void vehicle_physics::addWheel(const vec3_m& connectionPointCS, const vec3_m& wheelDirectionCS0, const vec3_m& wheelAxleCS,
+void vehicle_physics::add_wheel(const vec3_m& connectionPointCS, const vec3_m& wheelDirectionCS0, const vec3_m& wheelAxleCS,
 										float suspensionRestLength, float wheelRadius, bool isFrontWheel)
 {
-	vehicle_suspension susp;
+	vehicle_suspension *susp = new vehicle_suspension;
 
-	susp.m_chassisConnectionCS = connectionPointCS;
-	susp.m_wheelDirectionCS = wheelDirectionCS0;
-	susp.m_wheelAxleCS = wheelAxleCS;
-	susp.m_suspension_rest_length = suspensionRestLength;
-	susp.m_wheel_radius = wheelRadius;
-	susp.m_is_front = isFrontWheel;
+	susp->m_chassisConnectionCS = connectionPointCS;
+	susp->m_wheelDirectionCS = wheelDirectionCS0;
+	susp->m_wheelAxleCS = wheelAxleCS;
+	susp->m_suspension_rest_length = suspensionRestLength;
+	susp->m_wheel_radius = wheelRadius;
+	susp->m_is_front = isFrontWheel;
 
-	m_wheelInfo.push_back(susp);
-	updateWheelTransform(getNumWheels() - 1);
+	m_wheels.push_back(susp);
+	update_wheel_transform(get_wheel_count() - 1);
 }
 
 
-const placement_m vehicle_physics::getWheelTransformWS(int wheelIndex) const
+const placement_m vehicle_physics::get_wheel_world_transform(int wheelIndex) const
 {
-	const vehicle_suspension& wheel = m_wheelInfo[wheelIndex];
-	return wheel.m_worldTransform;
+	const vehicle_suspension* wheel = m_wheels[wheelIndex];
+	return wheel->m_worldTransform;
 }
 
 
-void vehicle_physics::updateWheelTransform(int wheelIndex)
+void vehicle_physics::update_wheel_transform(int wheelIndex)
 {
-	vehicle_suspension& wheel = m_wheelInfo[wheelIndex];
-	const placement_m chassis_trans = getChassisWorldTransform();
-
-	wheel.m_raycastInfo.m_isInContact = false;
-	wheel.m_raycastInfo.m_hardPointWS = chassis_trans.transform(wheel.m_chassisConnectionCS);
-	wheel.m_raycastInfo.m_wheelDirectionWS = chassis_trans.q.rotate(wheel.m_wheelDirectionCS);
-	wheel.m_raycastInfo.m_wheelAxleWS = chassis_trans.q.rotate(wheel.m_wheelAxleCS);
-
-	const vec3_m up = -wheel.m_raycastInfo.m_wheelDirectionWS.getNormalized();
-	const vec3_m right = wheel.m_raycastInfo.m_wheelAxleWS.getNormalized();
-	//const vec3_m forward = up.cross(right).getNormalized();
-
+	vehicle_suspension *wheel = m_wheels[wheelIndex];
+	const placement_m chassis_trans = get_chassis_world_transform();
 	const quat_m rel_rotation(3.14159f / 2.0f, vec3_m(0.0f, 1.0f, 0.0f));
 
-	const quat_m initial_transform = getChassisWorldTransform().q * rel_rotation;
-	const quat_m steering_quat(wheel.m_steering, up);
-	const quat_m rotating_quat(wheel.m_rotation, right);
+	const vec3_m up = -wheel->m_wheelDirectionCS.getNormalized();
+	const vec3_m right = wheel->m_wheelAxleCS.getNormalized();
+	const vec3_m forward = up.cross(right).getNormalized();
 
-	wheel.m_worldTransform.q = steering_quat * rotating_quat * initial_transform;
-	wheel.m_worldTransform.p = wheel.m_raycastInfo.m_hardPointWS + wheel.m_raycastInfo.m_wheelDirectionWS * wheel.m_raycastInfo.m_suspensionLength;
+	const quat_m initial_transform = chassis_trans.q * rel_rotation;
+	const quat_m steering_quat(wheel->m_steering, up);
+	const quat_m rotating_quat(wheel->m_rotation * 0.0f, right);
+
+	wheel->m_raycastInfo.m_isInContact = false;
+	wheel->m_raycastInfo.m_hardPointWS = chassis_trans.transform(wheel->m_chassisConnectionCS);
+	wheel->m_raycastInfo.m_wheelDirectionWS = chassis_trans.q.rotate(wheel->m_wheelDirectionCS);
+	wheel->m_raycastInfo.m_wheelAxleWS = chassis_trans.q.rotate(steering_quat.rotate(wheel->m_wheelAxleCS));
+	wheel->m_raycastInfo.m_wheelForwardWS = chassis_trans.q.rotate(wheel->m_wheelDirectionCS.cross(wheel->m_wheelAxleCS));
+
+	wheel->m_worldTransform.q = steering_quat * rotating_quat * initial_transform;
+	wheel->m_worldTransform.p = wheel->m_raycastInfo.m_hardPointWS + wheel->m_raycastInfo.m_wheelDirectionWS * wheel->m_raycastInfo.m_suspension_length;
 }
 
 
-void vehicle_physics::processRaycasts(void)
+void vehicle_physics::process_raycasts(void)
 {
-	for (int idx = 0; idx < m_wheelInfo.size(); idx++) {
-		vehicle_suspension& wheel = m_wheelInfo[idx];
+	for (int idx = 0; idx < m_wheels.size(); idx++) {
+		vehicle_suspension *wheel = m_wheels[idx];
 
-		const float raylen = wheel.m_suspension_rest_length + wheel.m_wheel_radius;
-		const vec3_m rayvector = wheel.m_raycastInfo.m_wheelDirectionWS * raylen;
-		const vec3_m source = wheel.m_raycastInfo.m_hardPointWS;
-		wheel.m_raycastInfo.m_contactPointWS = source + rayvector;
-		const vec3_m target = wheel.m_raycastInfo.m_contactPointWS;
+		const float raylen = wheel->m_suspension_rest_length + wheel->m_wheel_radius;
+		const vec3_m rayvector = wheel->m_raycastInfo.m_wheelDirectionWS * raylen;
+		const vec3_m source = wheel->m_raycastInfo.m_hardPointWS;
+		wheel->m_raycastInfo.m_contactPointWS = source + rayvector;
+		const vec3_m target = wheel->m_raycastInfo.m_contactPointWS;
 
 		physics_actor *hit_actor = nullptr;
 		vec3_m hit_point, hit_normal;
@@ -96,147 +96,124 @@ void vehicle_physics::processRaycasts(void)
 			const float hitFraction = hit_fraction;
 			const float hitDepth = raylen * hitFraction;
 
-			wheel.m_raycastInfo.m_contactNormalWS = hitNormalInWorld;
-			wheel.m_raycastInfo.m_isInContact = true;
-			wheel.m_raycastInfo.m_groundObject = hit_actor->getBody();
-			wheel.m_raycastInfo.m_suspensionLength = hitDepth - wheel.m_wheel_radius;
+			wheel->m_raycastInfo.m_contactNormalWS = hitNormalInWorld;
+			wheel->m_raycastInfo.m_isInContact = true;
+			wheel->m_raycastInfo.m_groundObject = hit_actor->getBody();
+			wheel->m_raycastInfo.m_suspension_length_last = wheel->m_raycastInfo.m_suspension_length;
+			wheel->m_raycastInfo.m_suspension_length = hitDepth - wheel->m_wheel_radius;
 
 			// Calculate suspension velocity
-			wheel.m_raycastInfo.m_contactPointWS = hitPointInWorld;
-
-			const float denominator = wheel.m_raycastInfo.m_contactNormalWS.dot(wheel.m_raycastInfo.m_wheelDirectionWS);
-			if (denominator >= float(-0.1f)) {
-				wheel.m_suspensionRelativeVelocity = 0.0f;
-				wheel.m_clippedInvContactDotSuspension = 10.0f;
-			}
-			else {
-				const vec3_m rel_position = wheel.m_raycastInfo.m_contactPointWS - m_chassisBody->get_placement().p;
-				const vec3_m rel_velocity = m_chassisBody->get_rel_velocity_at_rel_pos(rel_position);
-
-				const float proj_velocity = wheel.m_raycastInfo.m_contactNormalWS.dot(rel_velocity);
-				const float inv = float(-1.) / denominator;
-
-				wheel.m_suspensionRelativeVelocity = proj_velocity * inv;
-				wheel.m_clippedInvContactDotSuspension = inv;
-			}
+			wheel->m_raycastInfo.m_contactPointWS = hitPointInWorld;
 		}
 		else {
 			// put wheel info into a rest position
-			wheel.m_raycastInfo.m_suspensionLength = wheel.m_suspension_rest_length;
-			wheel.m_suspensionRelativeVelocity = 0.0f;
-			wheel.m_raycastInfo.m_contactNormalWS = -wheel.m_raycastInfo.m_wheelDirectionWS;
-			wheel.m_clippedInvContactDotSuspension = 0.0f;
-			wheel.m_raycastInfo.m_groundObject = nullptr;
+			wheel->m_raycastInfo.m_suspension_length = wheel->m_suspension_rest_length;
+			wheel->m_raycastInfo.m_contactNormalWS = -wheel->m_raycastInfo.m_wheelDirectionWS;
+			wheel->m_raycastInfo.m_groundObject = nullptr;
 		}
 	}
 }
 
 
-const placement_m vehicle_physics::getChassisWorldTransform() const
+const placement_m vehicle_physics::get_chassis_world_transform(void) const
 {
 	return m_chassisBody->get_placement();
 }
 
 
-void vehicle_physics::rotateWheels(float timestep)
+void vehicle_physics::rotate_wheels(float timestep)
 {
-	for (int i = 0; i < m_wheelInfo.size(); i++) {
-		vehicle_suspension& wheel = m_wheelInfo[i];
-		if (wheel.m_raycastInfo.m_isInContact) {
-			const vec3_m rel_position = wheel.m_raycastInfo.m_hardPointWS - m_chassisBody->get_placement().p;
+	for (int i = 0; i < m_wheels.size(); i++) {
+		vehicle_suspension *wheel = m_wheels[i];
+		if (wheel->m_raycastInfo.m_isInContact) {
+			const vec3_m rel_position = wheel->m_raycastInfo.m_hardPointWS - m_chassisBody->get_placement().p;
 			const vec3_m rel_velocity = m_chassisBody->get_velocity_at_rel_pos(rel_position);
 			const vec3_m local_forward(0.0f, 1.0f, 0.0f);
-			vec3_m global_forward = getChassisWorldTransform().transform(local_forward);
+			vec3_m global_forward = get_chassis_world_transform().transform(local_forward);
 
-			const float proj = global_forward.dot(wheel.m_raycastInfo.m_contactNormalWS);
-			global_forward -= wheel.m_raycastInfo.m_contactNormalWS * proj;
+			const float proj = global_forward.dot(wheel->m_raycastInfo.m_contactNormalWS);
+			global_forward -= wheel->m_raycastInfo.m_contactNormalWS * proj;
 			const float proj2 = global_forward.dot(rel_velocity);
 
-			wheel.m_delta_rotation = (proj2 * timestep) / (wheel.m_wheel_radius);
-			wheel.m_rotation += wheel.m_delta_rotation;
+			wheel->m_delta_rotation = (proj2 * timestep) / (wheel->m_wheel_radius);
+			wheel->m_rotation += wheel->m_delta_rotation;
 		}
 		else {
 			// rotation damping when not in contact
-			wheel.m_delta_rotation *= 0.99f;
-			wheel.m_rotation += wheel.m_delta_rotation;
+			wheel->m_delta_rotation *= 0.99f;
+			wheel->m_rotation += wheel->m_delta_rotation;
 		}
 	}
 }
 
 
 
-void vehicle_physics::updateVehicle(float timestep)
+void vehicle_physics::update_vehicle(float timestep)
 {
-	for (int i = 0; i < getNumWheels(); ++i) {
-		updateWheelTransform(i);
+	for (int i = 0; i < m_wheels.size(); ++i) {
+		update_wheel_transform(i);
 	}
 
-	processRaycasts();
-	updateSuspension();
+	process_raycasts();
+	update_suspension(timestep);
 
-	updateFriction();
-	rotateWheels(timestep);
+	update_friction();
+	rotate_wheels(timestep);
 }
 
 
-void vehicle_physics::setSteeringValue(float steering,int wheel)
+void vehicle_physics::set_steering(float steering,int wheel_idx)
 {
-	assert(wheel>=0 && wheel < getNumWheels());
-	vehicle_suspension& wheelInfo = getWheelInfo(wheel);
-	wheelInfo.m_steering = steering;
+	assert(wheel_idx >= 0 && wheel_idx < m_wheels.size());
+	vehicle_suspension *wheel = get_wheel(wheel_idx);
+	wheel->m_steering = steering;
 }
 
 
-float vehicle_physics::getSteeringValue(int wheel) const
+float vehicle_physics::get_steering(int wheel_idx)
 {
-	return getWheelInfo(wheel).m_steering;
+	vehicle_suspension *wheel = get_wheel(wheel_idx);
+	return wheel->m_steering;
 }
 
 
-void vehicle_physics::applyEngineForce(float force, int wheel)
+void vehicle_physics::apply_engine_force(float force, int wheel_idx)
 {
-	assert(wheel>=0 && wheel < getNumWheels());
-	vehicle_suspension& wheelInfo = getWheelInfo(wheel);
-	wheelInfo.m_engine_force = force;
+	assert(wheel_idx >= 0 && wheel_idx < m_wheels.size());
+	vehicle_suspension *wheel = get_wheel(wheel_idx);
+	wheel->m_engine_force = force;
+}
+
+vehicle_suspension *vehicle_physics::get_wheel(int index)
+{
+	assert((index >= 0) && (index < m_wheels.size()));
+	return m_wheels[index];
+}
+
+void vehicle_physics::set_brake(float brake,int wheel_idx)
+{
+	assert((wheel_idx >= 0) && (wheel_idx < m_wheels.size()));
+	get_wheel(wheel_idx)->m_brake = brake;
 }
 
 
-const vehicle_suspension& vehicle_physics::getWheelInfo(int index) const
+void vehicle_physics::update_suspension(const float timestep)
 {
-	assert((index >= 0) && (index < getNumWheels()));
-	return m_wheelInfo[index];
-}
-
-vehicle_suspension& vehicle_physics::getWheelInfo(int index)
-{
-	assert((index >= 0) && (index < getNumWheels()));
-	return m_wheelInfo[index];
-}
-
-void vehicle_physics::setBrake(float brake,int wheelIndex)
-{
-	assert((wheelIndex >= 0) && (wheelIndex < getNumWheels()));
-	getWheelInfo(wheelIndex).m_brake = brake;
-	getWheelInfo(wheelIndex).m_engine_force = 0.0f;
-}
-
-
-void vehicle_physics::updateSuspension(void)
-{
-	for (int idx = 0; idx < getNumWheels(); ++idx) {
-		vehicle_suspension &wheel_info = m_wheelInfo[idx];
-		if (wheel_info.m_raycastInfo.m_isInContact) {
+	for (int idx = 0; idx < m_wheels.size(); ++idx) {
+		vehicle_suspension *wheel = m_wheels[idx];
+		if (wheel->m_raycastInfo.m_isInContact) {
 			// Springing
-			const float susp_length = wheel_info.m_suspension_rest_length;
-			const float current_length = wheel_info.m_raycastInfo.m_suspensionLength;
-			const float diff = (susp_length - current_length);
+			const float rest_length = wheel->m_suspension_rest_length;
+			const float previous_length = wheel->m_raycastInfo.m_suspension_length_last;
+			const float current_length = wheel->m_raycastInfo.m_suspension_length;
+			const float diff = (rest_length - current_length);
 
 			// TODO: calibrate the springing
-			float suspension_force = wheel_info.m_suspension_stiffness * diff * wheel_info.m_clippedInvContactDotSuspension;
+			float suspension_force = wheel->m_suspension_stiffness * diff;
 
 			// Damping
-			const float rel_velocity = wheel_info.m_suspensionRelativeVelocity;
-			const float suspension_damping = wheel_info.m_suspension_damping * rel_velocity;
+			const float rel_velocity = (current_length - previous_length) / timestep;
+			const float suspension_damping = wheel->m_suspension_damping * rel_velocity;
 
 			suspension_force -= suspension_damping;
 
@@ -247,8 +224,8 @@ void vehicle_physics::updateSuspension(void)
 				suspension_force = 0.0f;
 			}
 
-			const vec3_m force = wheel_info.m_raycastInfo.m_contactNormalWS * suspension_force;
-			const vec3_m rel_position = wheel_info.m_raycastInfo.m_contactPointWS - m_chassisBody->get_placement().p;
+			const vec3_m force = wheel->m_raycastInfo.m_contactNormalWS * suspension_force;
+			const vec3_m rel_position = wheel->m_raycastInfo.m_contactPointWS - m_chassisBody->get_placement().p;
 
 			m_chassisBody->add_force_at_rel_pos(force, rel_position);
 		}
@@ -257,64 +234,64 @@ void vehicle_physics::updateSuspension(void)
 
 
 
-void vehicle_physics::updateFriction(void)
+void vehicle_physics::update_friction(void)
 {
-	const int wheel_count = getNumWheels();
+	const size_t wheel_count = m_wheels.size();
 	if (! wheel_count) {
 		return;
 	}
 
-	m_forwardImpulse.resize(wheel_count);
-	m_sideImpulse.resize(wheel_count);
+	m_longitudinal_force.resize(wheel_count);
+	m_lateral_force.resize(wheel_count);
 
-	for (int i = 0; i < wheel_count; ++i) {
-		m_sideImpulse[i] = 0.0f;
-		m_forwardImpulse[i] = 0.0f;
+	for (int idx = 0; idx < wheel_count; ++idx) {
+		m_lateral_force[idx] = 0.0f;
+		m_longitudinal_force[idx] = 0.0f;
 	}
 
-	for (int wheel = 0; wheel < wheel_count; wheel++) {
-		vehicle_suspension& wheelInfo = m_wheelInfo[wheel];
+	for (int idx = 0; idx < wheel_count; ++idx) {
+		const vehicle_suspension *const wheel = m_wheels[idx];
 
-		if (wheelInfo.m_raycastInfo.m_isInContact) {
-			const vec3_m rel_velocity = m_chassisBody->get_velocity_at_rel_pos(m_wheelInfo[wheel].m_chassisConnectionCS);
-			const vec3_m side_vector = -wheelInfo.m_raycastInfo.m_wheelAxleWS.getNormalized();
+		if (wheel->m_raycastInfo.m_isInContact) {
+			const vec3_m rel_velocity = m_chassisBody->get_velocity_at_rel_pos(wheel->m_chassisConnectionCS);
+			const vec3_m side_vector = -wheel->m_raycastInfo.m_wheelAxleWS.getNormalized();
 			const float side_rel_velocity = rel_velocity.dot(side_vector);
-			m_sideImpulse[wheel] = 2.0f * side_rel_velocity;
+			m_lateral_force[idx] = 1.0f * side_rel_velocity;
 		}
 	}
 
 	for (int idx = 0; idx < wheel_count; ++idx) {
-		const vehicle_suspension *const wheel = &m_wheelInfo[idx];
+		const vehicle_suspension *const wheel = m_wheels[idx];
 
 		if (wheel->m_raycastInfo.m_isInContact) {
-			const vec3_m rel_velocity = m_chassisBody->get_velocity_at_rel_pos(m_wheelInfo[idx].m_chassisConnectionCS);
-			const vec3_m forward_vector = wheel->m_raycastInfo.m_wheelDirectionWS.getNormalized();;
-			const float forward_rel_velocity = rel_velocity.dot(forward_vector);
-			const float rotation_velocity = wheel->m_angular_velocity * wheel->m_wheel_radius;
-			//const float rel_velocity = forward_rel_velocity;// -rotation_velocity;
+			const vec3_m rel_velocity = m_chassisBody->get_velocity_at_rel_pos(wheel->m_chassisConnectionCS);
+			const vec3_m forward_vector = m_chassisBody->get_placement().q.rotate(vec3_m(1.0f, 0.0f, 0.0f));
+			const float forward_rel_velocity = -rel_velocity.dot(forward_vector);
 
-			float engine = wheel->m_engine_force;
-
-			
-			m_forwardImpulse[idx] = forward_rel_velocity;
-			m_forwardImpulse[idx] += wheel->m_engine_force * 10.0f;
+			const float coeff = 1.0f / (1.0f + 2.0f * forward_rel_velocity);
+			const int sgn = (wheel->m_engine_force > 0.0f ? 1 : ((wheel->m_engine_force < 0.0f) ? -1 : 0));
+			if (idx == 2 && (wheel->m_engine_force != 0.0f || wheel->m_brake != 0.0f)) {
+				m_longitudinal_force[idx] = abs(wheel->m_engine_force - wheel->m_brake) * 5.0f * coeff;
+			}
 		}
 	}
 
-	for (int wheel = 0; wheel < getNumWheels(); wheel++) {
-		vehicle_suspension& wheelInfo = m_wheelInfo[wheel];
-		const vec3_m rel_pos = wheelInfo.m_raycastInfo.m_contactPointWS - m_chassisBody->get_placement().p;
+	for (int idx = 0; idx < m_wheels.size(); ++idx) {
+		const vehicle_suspension *const wheel = m_wheels[idx];
+		const vec3_m rel_pos = m_chassisBody->get_placement().inverse_transform(wheel->m_raycastInfo.m_contactPointWS);
 
-		if (m_forwardImpulse[wheel] != 0.0f) {
-			const vec3_m lateral_vector = wheelInfo.m_raycastInfo.m_wheelAxleWS.getNormalized(); 
-			const vec3_m up_vector = wheelInfo.m_raycastInfo.m_wheelDirectionWS.getNormalized();
-			const vec3_m longitudinal_vector = -lateral_vector.cross(up_vector);
-			const vec3_m longitudinal_force =  -m_forwardImpulse[wheel] * longitudinal_vector;
-			m_chassisBody->add_force_at_rel_pos(longitudinal_force, rel_pos);
+		if (m_longitudinal_force[idx] != 0.0f && idx == 2) {
+			const float vel_magn = m_chassisBody->get_velocity_at_rel_pos(vec3_m(0.0f, 0.0f, 0.0f)).magnitude();
+			const float coeff = vel_magn > 5.0f ? 0.0f : 1.0f;
+			const vec3_m longitudinal_vector2 = wheel->m_raycastInfo.m_wheelForwardWS;
+			const vec3_m forward_vector = m_chassisBody->get_placement().q.rotate(vec3_m(1.0f, 0.0f, 0.0f));
+			const vec3_m longitudinal_force = (-coeff * wheel->m_engine_force * 10.0f + coeff * wheel->m_brake * 1.0f) * vec3_m(1.0f, 0.0f, 0.0f);// m_longitudinal_force[idx] * forward_vector;
+			//m_chassisBody->add_force_at_rel_pos(longitudinal_force, rel_pos);
+			m_chassisBody->add_rel_force_at_rel_pos(longitudinal_force, vec3_m(0.0f, 0.0f, 0.0f));
 		}
-		if (m_sideImpulse[wheel] != 0.0f) {
-			const vec3_m lateral_vector = wheelInfo.m_raycastInfo.m_wheelAxleWS.getNormalized(); // vs m_axle[i]
-			const vec3_m lateral_force = m_sideImpulse[wheel] * lateral_vector;
+		if (m_lateral_force[idx] != 0.0f) {
+			const vec3_m lateral_vector = wheel->m_raycastInfo.m_wheelAxleWS.getNormalized();
+			const vec3_m lateral_force = m_lateral_force[idx] * lateral_vector;
 			m_chassisBody->add_force_at_rel_pos(lateral_force, rel_pos);
 		}
 	}
